@@ -1,6 +1,23 @@
 import os
 import json
 import pandas as pd
+import shutil
+import git
+import mysql.connector
+
+# Get the current directory by using '.'
+current_directory = '.'
+
+# Define the path where you want to store the cloned data
+clone_folder = 'pulse_repository'
+
+# Clone the GitHub repository
+repo_url = 'https://github.com/phonepe/pulse.git'
+
+if clone_folder in os.listdir(current_directory):
+    shutil.rmtree(clone_folder)
+
+git.Repo.clone_from(repo_url, clone_folder)
 
 
 # Aggregated
@@ -458,25 +475,208 @@ for states in topuserState:
 df_top_UserDistrict_state = pd.DataFrame(topUserDistrict_Data_state)
 df_top_UserPinCode_state = pd.DataFrame(topUserPincode_Data_state)
 
-#getting the file names
-print('---------------AGGREGATED tABLE-----------')
-print(df_aggregated_transaction_AllIndia.isnull().sum())
-print(df_aggregated_transaction_state.isnull().sum())
-print(df_aggregated_user_AllIndia.isnull().sum())
-print(df_aggregated_user_state.isnull().sum())
-print('---------------MAP tABLE-----------')
-print(df_map_transaction_AllIndia.isnull().sum())
-print(df_map_transaction_state.isnull().sum())
-print(df_map_user_AllIndia.isnull().sum())
-print(df_map_user_state.isnull().sum())
-print('---------------TOP tABLE-----------')
-print(df_top_transactionState_AllIndia.isnull().sum())
-print(df_top_transactionDistrict_AllIndia.isnull().sum())
-print(df_top_transactionPinCode_AllIndia.isnull().sum())
-print(df_top_transactionDistrict_State.isnull().sum())
-print(df_top_transactionPinCode_State.isnull().sum())
-print(df_top_UserState_AllIndia.isnull().sum())
-print(df_top_UserDistrict_AllIndia.isnull().sum())
-print(df_top_UserPinCode_AllIndia.isnull().sum())
-print(df_top_UserDistrict_state.isnull().sum())
-print(df_top_UserPinCode_state.isnull().sum())
+
+
+db_connection = mysql.connector.connect(
+    host=" Santhoshsivans-MacBook-Air.local",
+    user="root",
+    password="MSss2926LoVe",
+
+)
+
+cursor = db_connection.cursor()
+create_db_query = "CREATE DATABASE IF NOT EXISTS phonepe;"
+cursor.execute(create_db_query)
+
+use_db_query = "USE phonepe;"
+cursor.execute(use_db_query)
+
+
+table_queries = [
+    '''CREATE TABLE IF NOT EXISTS Year_Quarter (
+    Year INT,
+    Quarter INT,
+    PRIMARY KEY (Year, Quarter)
+);''',
+    '''CREATE TABLE IF NOT EXISTS Brand_Wise_User_Count_All_India (
+    Year INT,
+    Quarter INT,
+    Brands VARCHAR(255),
+    User_Count INT,
+    User_Percentage DECIMAL(5, 2),
+    PRIMARY KEY (Year, Quarter, Brands),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);''',
+    '''CREATE TABLE IF NOT EXISTS Brand_Wise_User_Count_State_Wise (
+    State VARCHAR(255),
+    Year INT,
+    Quarter INT,
+    Brands VARCHAR(255),
+    User_Count INT,
+    User_Percentage DECIMAL(5, 2),
+    PRIMARY KEY (State, Year, Quarter, Brands),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);''',
+    '''CREATE TABLE IF NOT EXISTS Registered_User_All_India (
+    State VARCHAR(255),
+    Year INT,
+    Quarter INT,
+    Registered_User INT,
+    PRIMARY KEY (State, Year, Quarter),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    '''CREATE TABLE IF NOT EXISTS Registered_User_All_States (
+    State VARCHAR(255),
+    Year INT,
+    Quarter INT,
+    District VARCHAR(255),
+    Registered_User INT,
+    PRIMARY KEY (State, Year, Quarter, District),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    '''CREATE TABLE IF NOT EXISTS Top_10_Registered_Users_All_India_State (
+    Year INT,
+    Quarter INT,
+    State VARCHAR(255),
+    Registered_User INT,
+    PRIMARY KEY (Year, Quarter, State),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    '''CREATE TABLE IF NOT EXISTS Top_10_Registered_Users_All_India_District (
+    Year INT,
+    Quarter INT,
+    District VARCHAR(255),
+    Registered_User INT,
+    PRIMARY KEY (Year, Quarter, District),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    '''CREATE TABLE IF NOT EXISTS Top_10_Registered_Users_All_India_Pincode (
+    Year INT,
+    Quarter INT,
+    Pincode INT,
+    Registered_User INT,
+    PRIMARY KEY (Year, Quarter, Pincode),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    '''CREATE TABLE IF NOT EXISTS Top_10_Registered_Users_State_District (
+    Year INT,
+    Quarter INT,
+    State VARCHAR(255),
+    District VARCHAR(255),
+    Registered_User INT,
+    PRIMARY KEY (Year, Quarter, State, District),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    '''CREATE TABLE IF NOT EXISTS Top_10_Registered_Users_State_Pincode (
+    Year INT,
+    Quarter INT,
+    State VARCHAR(255),
+    Pincode INT,
+    Registered_User INT,
+    PRIMARY KEY (Year, Quarter, State, Pincode),
+    FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+);
+''',
+    """CREATE TABLE IF NOT EXISTS Transaction_Type_Count_Amount_All_India (
+           Year INT,
+           Quarter INT,
+           Transaction_type VARCHAR(255),
+           Transaction_count INT,
+           Transaction_amount DECIMAL(18, 2),
+           PRIMARY KEY (Year, Quarter, Transaction_type),
+           FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+       );""",
+    """CREATE TABLE IF NOT EXISTS Transaction_Type_Count_Amount_State (
+        State VARCHAR(255),
+        Year INT,
+        Quarter INT,
+        Transaction_Type VARCHAR(255),
+        Transaction_Count INT,
+        Transaction_Amount DECIMAL(18, 2),
+        PRIMARY KEY (State, Year, Quarter, Transaction_Type),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Transaction_Count_Amount_All_India_State_Wise (
+        State VARCHAR(255),
+        Year INT,
+        Quarter INT,
+        Transaction_Count INT,
+        Transaction_Amount DECIMAL(18, 2),
+        PRIMARY KEY (State, Year, Quarter),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Transaction_Count_Amount_Each_State_District_Wise (
+        State VARCHAR(255),
+        Year INT,
+        Quarter INT,
+        District VARCHAR(255),
+        Transaction_Count INT,
+        Transaction_Amount DECIMAL(18, 2),
+        PRIMARY KEY (State, Year, Quarter, District),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Top_10_Transaction (
+        Year INT,
+        Quarter INT,
+        State VARCHAR(255),
+        Transaction_count INT,
+        Transaction_amount DECIMAL(18, 2),
+        PRIMARY KEY (Year, Quarter, State),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Top_10_Transaction_District (
+        Year INT,
+        Quarter INT,
+        District VARCHAR(255),
+        Transaction_count INT,
+        Transaction_amount DECIMAL(18, 2),
+        PRIMARY KEY (Year, Quarter, District),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Top_10_Transaction_Pincode (
+        Year INT,
+        Quarter INT,
+        Pincode INT,
+        Transaction_count INT,
+        Transaction_amount DECIMAL(18, 2),
+        PRIMARY KEY (Year, Quarter, Pincode),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Top_10_Transaction_State_District (
+        Year INT,
+        Quarter INT,
+        State VARCHAR(255),
+        District VARCHAR(255),
+        Transaction_count INT,
+        Transaction_amount DECIMAL(18, 2),
+        PRIMARY KEY (Year, Quarter, State, District),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );""",
+    """CREATE TABLE IF NOT EXISTS Top_10_Transaction_State_Pincode (
+        Year INT,
+        Quarter INT,
+        State VARCHAR(255),
+        Pincode INT,
+        Transaction_count INT,
+        Transaction_amount DECIMAL(18, 2),
+        PRIMARY KEY (Year, Quarter, State, Pincode),
+        FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
+    );"""
+]
+
+for query in table_queries:
+    try:
+        cursor.execute(query)
+        db_connection.commit()
+
+    except mysql.connector.Error as err:
+        print("Error:", err)
+
+cursor.close()
+db_connection.close()
