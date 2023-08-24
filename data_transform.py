@@ -4,6 +4,7 @@ import pandas as pd
 import shutil
 import git
 import mysql.connector
+import streamlit
 
 # Get the current directory by using '.'
 current_directory = '.'
@@ -19,7 +20,6 @@ if clone_folder in os.listdir(current_directory):
 
 git.Repo.clone_from(repo_url, clone_folder)
 
-
 # Aggregated
 # Transaction
 # All India
@@ -28,9 +28,15 @@ aggregated_dir_transaction_AllIndia = 'pulse_repository/data/aggregated/transact
 aggregatedTransactionState_Data_AllIndia = {'Year': [], 'Quarter': [], 'Transaction_type': [],
                                             'Transaction_count': [],
                                             'Transaction_amount': []}
-aggregated_years_All_India = ['2018', '2019', '2020', '2021', '2022', '2023']
 
-for year in aggregated_years_All_India:
+# Get a list of all subfolders in the source folder
+subfolders = [subfolder for subfolder in os.listdir(aggregated_dir_transaction_AllIndia) if
+              os.path.isdir(os.path.join(aggregated_dir_transaction_AllIndia, subfolder))]
+
+# Filter and print the year folders
+year_folders = [subfolder for subfolder in subfolders if subfolder.isdigit() and len(subfolder) == 4]
+
+for year in year_folders:
     year_path = os.path.join(aggregated_dir_transaction_AllIndia, year)
     year_path_format = year_path + "/"
     aggregated_year_list = os.listdir(year_path)
@@ -93,7 +99,7 @@ aggregated_dir_User_AllIndia = 'pulse_repository/data/aggregated/user/country/in
 
 aggregatedUser_Data_AllIndia = {'Year': [], 'Quarter': [], 'Brands': [], 'User Count': [], 'User Percentage': []}
 
-for year in aggregated_years_All_India:
+for year in year_folders:
     year_path = os.path.join(aggregated_dir_User_AllIndia, year)
     year_path_format = year_path + "/"
     aggregated_year_list = os.listdir(year_path)
@@ -116,6 +122,7 @@ for year in aggregated_years_All_India:
         except Exception as e:
             pass
 df_aggregated_user_AllIndia = pd.DataFrame(aggregatedUser_Data_AllIndia)
+
 
 # States
 
@@ -161,9 +168,8 @@ map_dir_transaction_AllIndia = 'pulse_repository/data/map/transaction/hover/coun
 
 mapTransactionState_Data_AllIndia = {'State': [], 'Year': [], 'Quarter': [], 'Transaction_Count': [],
                                      'Transaction_Amount': []}
-map_years_All_India = ['2018', '2019', '2020', '2021', '2022', '2023']
 
-for year in map_years_All_India:
+for year in year_folders:
     year_path = os.path.join(map_dir_transaction_AllIndia, year)
     year_path_format = year_path + "/"
     map_year_list = os.listdir(year_path)
@@ -227,7 +233,7 @@ map_dir_User_AllIndia = 'pulse_repository/data/map/user/hover/country/india/'
 
 map_Data_AllIndia = {"State": [], "Year": [], "Quarter": [], "Registered_User": []}
 
-for year in map_years_All_India:
+for year in year_folders:
     year_path = os.path.join(map_dir_User_AllIndia, year)
     year_path_format = year_path + "/"
     map_year_list = os.listdir(year_path)
@@ -294,9 +300,8 @@ topTransactionDistrict_Data_AllIndia = {'Year': [], 'Quarter': [], 'District': [
                                         'Transaction_amount': []}
 topTransactionPincode_Data_AllIndia = {'Year': [], 'Quarter': [], 'Pincode': [], 'Transaction_count': [],
                                        'Transaction_amount': []}
-top_years_All_India = ['2018', '2019', '2020', '2021', '2022', '2023']
 
-for year in top_years_All_India:
+for year in year_folders:
     year_path = os.path.join(top_dir_transaction_AllIndia, year)
     year_path_format = year_path + "/"
     top_year_list = os.listdir(year_path)
@@ -346,7 +351,7 @@ top_dir_transaction_state = 'pulse_repository/data/top/transaction/country/india
 topTransactionState = os.listdir(top_dir_transaction_state)
 topTransactionDistrict_Data_State = {'State': [], 'Year': [], 'Quarter': [], 'District': [], 'Transaction_count': [],
                                      'Transaction_amount': []}
-topTransactionPincode_Data_State = {'State': [],'Year': [], 'Quarter': [], 'Pincode': [], 'Transaction_count': [],
+topTransactionPincode_Data_State = {'State': [], 'Year': [], 'Quarter': [], 'Pincode': [], 'Transaction_count': [],
                                     'Transaction_amount': []}
 
 for states in topTransactionState:
@@ -395,8 +400,7 @@ topUserState_Data_AllIndia = {'Year': [], 'Quarter': [], 'State': [], 'Registere
 topUserDistrict_Data_AllIndia = {'Year': [], 'Quarter': [], 'District': [], 'Registered_User': []}
 topUserPincode_Data_AllIndia = {'Year': [], 'Quarter': [], 'Pincode': [], 'Registered_User': []}
 
-
-for year in top_years_All_India:
+for year in year_folders:
     year_path = os.path.join(top_dir_User_AllIndia, year)
     year_path_format = year_path + "/"
     top_year_list = os.listdir(year_path)
@@ -437,9 +441,8 @@ df_top_UserPinCode_AllIndia = pd.DataFrame(topUserPincode_Data_AllIndia)
 # states
 top_dir_User_state = 'pulse_repository/data/top/user/country/india/state/'
 topuserState = os.listdir(top_dir_User_state)
-topUserDistrict_Data_state = {'State':[], 'Year': [], 'Quarter': [], 'District': [], 'Registered_User': []}
-topUserPincode_Data_state = {'State':[], 'Year': [], 'Quarter': [], 'Pincode': [], 'Registered_User': []}
-
+topUserDistrict_Data_state = {'State': [], 'Year': [], 'Quarter': [], 'District': [], 'Registered_User': []}
+topUserPincode_Data_state = {'State': [], 'Year': [], 'Quarter': [], 'Pincode': [], 'Registered_User': []}
 
 for states in topuserState:
     states_path = top_dir_User_state + states + "/"
@@ -475,8 +478,6 @@ for states in topuserState:
 df_top_UserDistrict_state = pd.DataFrame(topUserDistrict_Data_state)
 df_top_UserPinCode_state = pd.DataFrame(topUserPincode_Data_state)
 
-
-
 db_connection = mysql.connector.connect(
     host=" Santhoshsivans-MacBook-Air.local",
     user="root",
@@ -490,7 +491,6 @@ cursor.execute(create_db_query)
 
 use_db_query = "USE phonepe;"
 cursor.execute(use_db_query)
-
 
 table_queries = [
     '''CREATE TABLE IF NOT EXISTS Year_Quarter (
@@ -670,13 +670,165 @@ table_queries = [
     );"""
 ]
 
+
+
 for query in table_queries:
     try:
         cursor.execute(query)
         db_connection.commit()
-
     except mysql.connector.Error as err:
         print("Error:", err)
+
+all_year_quarters = {'Year':[],'Quarter':[]}
+for year in range(2018, 2024):
+    for quarter in range(1, 5):
+        all_year_quarters['Year'].append((year))
+        all_year_quarters['Quarter'].append((quarter))
+df_Year_Quarter = pd.DataFrame(all_year_quarters)
+print(df_top_UserState_AllIndia.isnull().sum())
+
+for index, row in df_Year_Quarter.iterrows():
+    # Convert NumPy int64 to Python int
+    year = int(row['Year'])
+    quarter = int(row['Quarter'])
+
+    # Define the SQL INSERT query
+    insert_query = """
+        INSERT INTO Year_Quarter (Year, Quarter)
+        VALUES (%s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year), Quarter = VALUES(Quarter)
+        """
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (year, quarter))
+for index, row in df_aggregated_user_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Brand_Wise_User_Count_All_India (Year, Quarter, Brands, User_Count, User_Percentage)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Brands = VALUES(Brands),
+        User_Count = VALUES(User_Count),
+        User_Percentage = VALUES(User_Percentage);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['Brands'],
+        int(row['User Count']),
+        float(row['User Percentage'])))
+
+for index, row in df_aggregated_user_state.iterrows():
+    insert_query = """
+        INSERT INTO Brand_Wise_User_Count_State_Wise (State, Year, Quarter, Brands, User_Count, User_Percentage)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        State = VALUES(State),
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Brands = VALUES(Brands),
+        User_Count = VALUES(User_Count),
+        User_Percentage = VALUES(User_Percentage);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        row['State'],
+        int(row['Year']),
+        int(row['Quarter']),
+        row['Brands'],
+        int(row['User_Count']),
+        float(row['User_Percentage'])))
+for index, row in df_map_user_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Registered_User_All_India (State, Year, Quarter, Registered_User)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        State = VALUES(State),
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        row['State'],
+        int(row['Year']),
+        int(row['Quarter']),
+        int(row['Registered_User'])))
+
+for index, row in df_map_user_state.iterrows():
+    insert_query = """
+        INSERT INTO Registered_User_All_States (State, Year, Quarter, District, Registered_User)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        State = VALUES(State),
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        District = VALUES(District),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        row['State'],
+        int(row['Year']),
+        int(row['Quarter']),
+        row['District'],
+        int(row['Registered_User'])))
+
+for index, row in df_top_UserState_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Registered_Users_All_India_State (Year, Quarter, State, Registered_User)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        State = VALUES(State),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['State'],
+        int(row['Registered_User'])))
+
+for index, row in df_top_UserDistrict_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Registered_Users_All_India_District (Year, Quarter, District, Registered_User)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        District = VALUES(District),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['District'],
+        int(row['Registered_User'])))
+for index, row in df_top_UserPinCode_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Registered_Users_All_India_Pincode (Year, Quarter, Pincode, Registered_User)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Pincode = VALUES(Pincode),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['Pincode'],
+        int(row['Registered_User'])))
+
+# Commit the changes
+db_connection.commit()
 
 cursor.close()
 db_connection.close()
