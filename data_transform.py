@@ -4,7 +4,6 @@ import pandas as pd
 import shutil
 import git
 import mysql.connector
-import streamlit
 
 # Get the current directory by using '.'
 current_directory = '.'
@@ -122,7 +121,6 @@ for year in year_folders:
         except Exception as e:
             pass
 df_aggregated_user_AllIndia = pd.DataFrame(aggregatedUser_Data_AllIndia)
-
 
 # States
 
@@ -391,7 +389,7 @@ for states in topTransactionState:
 
 df_top_transactionDistrict_State = pd.DataFrame(topTransactionDistrict_Data_State)
 df_top_transactionPinCode_State = pd.DataFrame(topTransactionPincode_Data_State)
-
+df_top_transactionPinCode_State = df_top_transactionPinCode_State.dropna()
 # User
 # All India
 top_dir_User_AllIndia = 'pulse_repository/data/top/user/country/india/'
@@ -587,7 +585,7 @@ table_queries = [
            Year INT,
            Quarter INT,
            Transaction_type VARCHAR(255),
-           Transaction_count INT,
+           Transaction_count BIGINT,
            Transaction_amount DECIMAL(18, 2),
            PRIMARY KEY (Year, Quarter, Transaction_type),
            FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -597,7 +595,7 @@ table_queries = [
         Year INT,
         Quarter INT,
         Transaction_Type VARCHAR(255),
-        Transaction_Count INT,
+        Transaction_Count BIGINT,
         Transaction_Amount DECIMAL(18, 2),
         PRIMARY KEY (State, Year, Quarter, Transaction_Type),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -606,7 +604,7 @@ table_queries = [
         State VARCHAR(255),
         Year INT,
         Quarter INT,
-        Transaction_Count INT,
+        Transaction_Count BIGINT,
         Transaction_Amount DECIMAL(18, 2),
         PRIMARY KEY (State, Year, Quarter),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -616,7 +614,7 @@ table_queries = [
         Year INT,
         Quarter INT,
         District VARCHAR(255),
-        Transaction_Count INT,
+        Transaction_Count BIGINT,
         Transaction_Amount DECIMAL(18, 2),
         PRIMARY KEY (State, Year, Quarter, District),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -625,7 +623,7 @@ table_queries = [
         Year INT,
         Quarter INT,
         State VARCHAR(255),
-        Transaction_count INT,
+        Transaction_count BIGINT,
         Transaction_amount DECIMAL(18, 2),
         PRIMARY KEY (Year, Quarter, State),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -634,7 +632,7 @@ table_queries = [
         Year INT,
         Quarter INT,
         District VARCHAR(255),
-        Transaction_count INT,
+        Transaction_count BIGINT,
         Transaction_amount DECIMAL(18, 2),
         PRIMARY KEY (Year, Quarter, District),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -643,7 +641,7 @@ table_queries = [
         Year INT,
         Quarter INT,
         Pincode INT,
-        Transaction_count INT,
+        Transaction_count BIGINT,
         Transaction_amount DECIMAL(18, 2),
         PRIMARY KEY (Year, Quarter, Pincode),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -653,7 +651,7 @@ table_queries = [
         Quarter INT,
         State VARCHAR(255),
         District VARCHAR(255),
-        Transaction_count INT,
+        Transaction_count BIGINT,
         Transaction_amount DECIMAL(18, 2),
         PRIMARY KEY (Year, Quarter, State, District),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
@@ -663,14 +661,12 @@ table_queries = [
         Quarter INT,
         State VARCHAR(255),
         Pincode INT,
-        Transaction_count INT,
+        Transaction_count BIGINT,
         Transaction_amount DECIMAL(18, 2),
         PRIMARY KEY (Year, Quarter, State, Pincode),
         FOREIGN KEY (Year, Quarter) REFERENCES Year_Quarter(Year, Quarter)
     );"""
 ]
-
-
 
 for query in table_queries:
     try:
@@ -679,13 +675,13 @@ for query in table_queries:
     except mysql.connector.Error as err:
         print("Error:", err)
 
-all_year_quarters = {'Year':[],'Quarter':[]}
+all_year_quarters = {'Year': [], 'Quarter': []}
 for year in range(2018, 2024):
     for quarter in range(1, 5):
         all_year_quarters['Year'].append((year))
         all_year_quarters['Quarter'].append((quarter))
 df_Year_Quarter = pd.DataFrame(all_year_quarters)
-print(df_top_UserState_AllIndia.isnull().sum())
+print(df_top_transactionPinCode_State.isnull().sum())
 
 for index, row in df_Year_Quarter.iterrows():
     # Convert NumPy int64 to Python int
@@ -826,6 +822,218 @@ for index, row in df_top_UserPinCode_AllIndia.iterrows():
         int(row['Quarter']),
         row['Pincode'],
         int(row['Registered_User'])))
+
+for index, row in df_top_UserDistrict_state.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Registered_Users_State_District (Year, Quarter, State, District, Registered_User)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        State = VALUES(State),
+        District = VALUES(District),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['State'],
+        row['District'],
+        int(row['Registered_User'])))
+for index, row in df_top_UserPinCode_state.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Registered_Users_State_Pincode (Year, Quarter, State, Pincode, Registered_User)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        State = VALUES(State),
+        Pincode = VALUES(Pincode),
+        Registered_User = VALUES(Registered_User);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['State'],
+        int(row['Pincode']),
+        int(row['Registered_User'])))
+
+for index, row in df_aggregated_transaction_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Transaction_Type_Count_Amount_All_India (Year, Quarter, Transaction_type, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Transaction_type = VALUES(Transaction_type),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['Transaction_type'],
+        int(row['Transaction_count']),
+        float(row['Transaction_amount'])))
+
+for index, row in df_aggregated_transaction_state.iterrows():
+    insert_query = """
+        INSERT INTO Transaction_Type_Count_Amount_State (State, Year, Quarter, Transaction_type, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        State = VALUES(State),
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Transaction_type = VALUES(Transaction_type),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        row['State'],
+        int(row['Year']),
+        int(row['Quarter']),
+        row['Transaction Type'],
+        int(row['Transaction Count']),
+        float(row['Transaction Amount'])))
+
+for index, row in df_map_transaction_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Transaction_Count_Amount_All_India_State_Wise (State, Year, Quarter, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        State = VALUES(State),
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        row['State'],
+        int(row['Year']),
+        int(row['Quarter']),
+        int(row['Transaction_Count']),
+        float(row['Transaction_Amount'])))
+
+for index, row in df_map_transaction_state.iterrows():
+    insert_query = """
+        INSERT INTO Transaction_Count_Amount_Each_State_District_Wise (State, Year, Quarter, District, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        State = VALUES(State),
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        District = VALUES(District),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        row['State'],
+        int(row['Year']),
+        int(row['Quarter']),
+        row['District'],
+        int(row['Transaction_Count']),
+        float(row['Transaction_Amount'])))
+for index, row in df_top_transactionState_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Transaction (Year, Quarter, State, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        State = VALUES(State),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['State'],
+        int(row['Transaction_count']),
+        float(row['Transaction_amount'])))
+for index, row in df_top_transactionDistrict_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Transaction_District (Year, Quarter, District, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        District = VALUES(District),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['District'],
+        int(row['Transaction_count']),
+        float(row['Transaction_amount'])))
+for index, row in df_top_transactionPinCode_AllIndia.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Transaction_Pincode (Year, Quarter, Pincode, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        Pincode = VALUES(Pincode),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['Pincode'],
+        int(row['Transaction_count']),
+        float(row['Transaction_amount'])))
+for index, row in df_top_transactionDistrict_State.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Transaction_State_District (Year, Quarter, State, District, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        State = VALUES(State),
+        District = VALUES(District),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['State'],
+        row['District'],
+        int(row['Transaction_count']),
+        float(row['Transaction_amount'])))
+
+for index, row in df_top_transactionPinCode_State.iterrows():
+    insert_query = """
+        INSERT INTO Top_10_Transaction_State_Pincode (Year, Quarter, State, Pincode, Transaction_count, Transaction_amount)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        Year = VALUES(Year),
+        Quarter = VALUES(Quarter),
+        State = VALUES(State),
+        Pincode = VALUES(Pincode),
+        Transaction_count = VALUES(Transaction_count),
+        Transaction_amount = VALUES(Transaction_amount);"""
+
+    # Execute the INSERT query with row values
+    cursor.execute(insert_query, (
+        int(row['Year']),
+        int(row['Quarter']),
+        row['State'],
+        int(row['Pincode']),
+        int(row['Transaction_count']),
+        float(row['Transaction_amount'])))
 
 # Commit the changes
 db_connection.commit()
