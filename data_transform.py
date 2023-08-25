@@ -311,6 +311,10 @@ def dataCleaning():
             Data = open(quartersFile_path, 'r')
             quartersFile_data = json.load(Data)
 
+            quartersFile_path = year_path_format + quartersFile
+            Data = open(quartersFile_path, 'r')
+            quartersFile_data = json.load(Data)
+
             for transaction_Data in quartersFile_data['data']['states']:
                 Name = transaction_Data['entityName']
                 count = transaction_Data['metric']['count']
