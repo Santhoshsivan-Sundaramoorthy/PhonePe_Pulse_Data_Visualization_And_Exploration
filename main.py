@@ -2,6 +2,8 @@ import mysql
 import streamlit as st
 from data_transform import tableCreationandDataInsertion
 import mysql.connector
+import pandas as pd
+import plotly.express as px
 
 year_list = ()
 
@@ -20,6 +22,11 @@ mysql_host_input = st.text_input("MySQL Host:", "")
 mysql_User_input = st.text_input("MySQL User:", "")
 mysql_Password_input = st.text_input("MySQL Password:", type="password")
 
+
+# Function to format state names
+def format_state_name(name):
+    formatted_name = name.replace('-', ' ').replace('&', '&').title()
+    return formatted_name
 
 
 def fetch_Query(query):
@@ -66,18 +73,64 @@ if input_filled:
     with col3:
         fetch_states = 'SELECT DISTINCT State FROM Registered_User_All_States;'
         state_list = [row[0] for row in fetch_Query(fetch_states)]
-        print(state_list)
         default_state = "All India"
         state_list = [default_state] + state_list
         selected_state = st.selectbox('Please select the State', state_list, index=state_list.index(default_state))
 
-        #All india
+        # All india
     if selected_state == "All India":
         if selected_type == "Transaction":
-            querry = f'select * from Transaction_Type_Count_Amount_State WHERE Year = {selected_Year} AND Quarter = {selected_Quarter};'
+            coll1, coll2 = st.columns(2, gap='large')
+            querry = (f'select Transaction_type, Transaction_count, Transaction_amount from '
+                      f'Transaction_Type_Count_Amount_All_India WHERE Year = {selected_Year} AND '
+                      f'Quarter = {selected_Quarter};')
             fun_result = fetch_Query(querry)
-            st.dataframe(fun_result)
+            column = ['Type', 'Count', 'Amount']
+            df = pd.DataFrame(fun_result, columns=column)
+            with coll1:
+                custom_color = ["#330067","#4c2881","#775bbe","#9a6dbe","#b284be"]
+                fig1 = px.pie(df,
+                             values="Count",
+                             names="Type",
+                             title="Count Distribution",
+                             color_discrete_sequence=custom_color,
+                             hole=0.7,  # Set the size of the hole to create a donut chart
+                             )
+                st.plotly_chart(fig1)
 
+                fig = px.pie(df, values="Amount", names="Type", title="Amount Distribution", color_discrete_sequence=custom_color)
+                st.plotly_chart(fig)
+            with coll2:
+                # Define the CSS style
+                css_style = """
+                                           <style>
+                                            .centered table{
+                                                border-collapse: separate;
+                                                
+                                            
+                                            }
+                                            .centered td{
+                                                border: none;
+                                            }
+                                            .centered tr{
+                                                border: none;
+                                                text-align: center; 
+                                            }
+                                            .centered th {
+                                                text-align: center;
+                                                background-color: #330067;
+                                                border: none;
+                                                border-radius: 20px; 
+                                                width: 100%  
+                                            }
+                                            </style>
+                                            """
+                # Apply the CSS style to the Streamlit app
+                st.markdown(css_style, unsafe_allow_html=True)
 
+                # Generate the HTML table
+                html_table = df.to_html(index=False, escape=False, classes='centered', border=False)
 
+                # Display the HTML table using st.write()
+                st.write(html_table, unsafe_allow_html=True)
 

@@ -58,6 +58,7 @@ def dataCleaning():
                 aggregatedTransactionState_Data_AllIndia['Transaction_amount'].append(amount)
 
     df_aggregated_transaction_AllIndia = pd.DataFrame(aggregatedTransactionState_Data_AllIndia)
+
     # State
 
     # Base directory for the JSON files
