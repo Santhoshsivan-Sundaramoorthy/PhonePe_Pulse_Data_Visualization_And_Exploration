@@ -2,6 +2,8 @@
 
 This project aims to extract, transform, and visualize data from the Phonepe Pulse GitHub repository. The repository contains a vast collection of metrics and statistics related to various domains. The goal is to process this data and present it in an interactive and user-friendly dashboard using a combination of technologies and tools. The project falls under the domain of Fintech.
 
+##Watch video Here: https://www.linkedin.com/posts/santhoshsivan-sundaramoorthy_phonepe-pulse-data-visualization-and-exploration-activity-7103029892497211392-4d0x?utm_source=share&utm_medium=member_desktop
+
 ## Technologies Used
 
 - **GitHub Cloning**: The project involves scripting to clone the Phonepe Pulse GitHub repository and fetch the data.
